@@ -2,44 +2,67 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class User extends Authenticatable
+class User extends Model
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'id', 
+        'first_name', 
+        'last_name', 
+        'phone', 
+        'email', 
+        'adress', 
+        'role',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    public function userIdentity(): HasOne
+    {
+        return $this->hasOne(UserIdentity::class);
+    }
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
+    public function polyclinics(): HasMany
+    {
+        return $this->hasMany(Polyclinic::class, 'personal_id');
+    }
+
+    public function analysesCreated(): HasMany
+    {
+        return $this->hasMany(Analyse::class, 'created_id');
+    }
+
+    public function analysesPatient(): HasMany
+    {
+        return $this->hasMany(Analyse::class, 'patient_id');
+    }
+
+    public function analysesPersonal(): HasMany
+    {
+        return $this->hasMany(Analyse::class, 'personal_id');
+    }
+
+    public function appointmentsPatient(): HasMany
+    {
+        return $this->hasMany(Appointment::class, 'patient_id');
+    }
+
+    public function appointmentsPersonal(): HasMany
+    {
+        return $this->hasMany(Appointment::class, 'personal_id');
+    }
+
+    public function scopeGetDoctors($query)
+    {
+        return $query->where('role', 'doctor');
+    }
+
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . ' ' . $this->last_name;
+    }
 }
